@@ -1,48 +1,82 @@
-<template>
+﻿<template>
   <div class="tab-bar">
-    <van-tabbar v-model="currentIndex">
-      <template v-for="(item, index) in tabbarData" :key="index">
-        <van-tabbar-item :to="item.path">
-          <span>{{ item.text }}</span>
+    <van-tabbar v-model="currentIndex" active-color="#ff7b1a" inactive-color="#7b8694">
+      <template v-for="(item, index) in tabbarData" :key="item.path">
+        <van-tabbar-item :to="item.path" :badge="item.badge">
+          <span class="label">{{ item.text }}</span>
           <template #icon>
-            <img v-if="currentIndex !== index" :src="getAssetURL(item.image)" alt="">
-            <img v-else :src="getAssetURL(item.imageActive)" alt="">
+            <div class="icon-wrap" :class="{ active: currentIndex === index }">
+              <img v-if="currentIndex !== index" :src="getAssetURL(item.image)" :alt="item.text" />
+              <img v-else :src="getAssetURL(item.imageActive)" :alt="item.text" />
+            </div>
           </template>
-      </van-tabbar-item>
+        </van-tabbar-item>
       </template>
     </van-tabbar>
   </div>
 </template>
 
 <script setup>
-import tabbarData from '@/assets/data/tabbar.js';
-import { getAssetURL } from '@/utils/load_assets.js';
-import { ref } from 'vue';
+import tabbarData from "@/assets/data/tabbar.js";
+import { getAssetURL } from "@/utils/load_assets.js";
+import { ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
-const currentIndex = ref(0)
+const route = useRoute();
+const currentIndex = ref(0);
 
+watch(
+  () => route.path,
+  (newPath) => {
+    const index = tabbarData.findIndex((item) => item.path === newPath);
+    if (index !== -1) currentIndex.value = index;
+  },
+  { immediate: true }
+);
 </script>
 
-
-<!-- 
-  修改第三方UI组件库的样式:
-    1.用插槽，插入自己的元素
-      那么在自己的作用域中直接修改这个元素
-    2.全局定义一个变量，覆盖它默认变量的值
-      缺点:全局修改
-    3.布局定义一个变量，覆盖它默认变量的值
-      优点:布局修改
-    4.直接查找对应的子组件选择器，进行修改
-      :deep(子组件中元素的选择器)进行修改
-      直接修改CSS
--->
-
-
-<!-- 添加作用域(当前) -->
 <style lang="less" scoped>
-  .tab-bar {
+.tab-bar {
+  :deep(.van-tabbar) {
+    height: 56px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: #fff;
+    box-shadow: 0 -8px 24px rgba(20, 30, 40, 0.08);
+    border-top: 1px solid #eef0f3;
+  }
+
+  :deep(.van-tabbar-item__icon) {
+    margin-bottom: 2px;
+  }
+
+  :deep(.van-badge__wrapper) {
+    overflow: visible;
+  }
+
+  :deep(.van-badge) {
+    transform: scale(0.85);
+  }
+
+  .icon-wrap {
+    transition: transform 0.2s ease;
+
     img {
-      height: 28px;
+      height: 26px;
+      width: 26px;
+      object-fit: contain;
+    }
+
+    &.active {
+      transform: translateY(-1px) scale(1.03);
     }
   }
+
+  .label {
+    font-size: 12px;
+  }
+}
 </style>

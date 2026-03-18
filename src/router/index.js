@@ -32,6 +32,20 @@ const router = createRouter({
         // 为路由记录添加自定义的信息
         hideTabBar: true
       }
+    },
+    {
+      path: "/search",
+      component: () => import("@/views/search/search.vue"),
+      meta: {
+        hideTabBar: true
+      }
+    },
+    {
+      path: "/detail/:id",
+      component: () => import("@/views/detail/detail.vue"),
+      meta: {
+        hideTabBar: true
+      }
     }
   ]
 })
