@@ -2,7 +2,10 @@
   <div class="favor">
     <van-nav-bar title="我的收藏">
       <template #right>
-        <span class="clear" v-if="favorCount > 0" @click="clearAll">清空</span>
+        <div class="right-actions">
+          <span class="clear" v-if="favorCount > 0" @click="clearAll">清空</span>
+          <span class="logout" @click="logout">退出</span>
+        </div>
       </template>
     </van-nav-bar>
 
@@ -37,11 +40,13 @@
 import useFavorStore from "@/stores/modules/favor";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
-import houseItemV9 from "@/components/house-item-v9/house-item-v9.vue";
-import houseItemV3 from "@/components/house-item-v3/house-item-v3.vue";
+import houseItemV9 from "@/components/house-item-v9-lazy.vue";
+import houseItemV3 from "@/components/house-item-v3-lazy.vue";
+import useAuthStore from "@/stores/modules/auth";
 
 const router = useRouter();
 const favorStore = useFavorStore();
+const authStore = useAuthStore();
 const { favorList, favorCount } = storeToRefs(favorStore);
 
 const toDetail = (houseId) => {
@@ -52,6 +57,12 @@ const toDetail = (houseId) => {
 const clearAll = () => {
   if (!window.confirm("确认清空收藏吗？")) return;
   favorStore.clearFavor();
+};
+
+const logout = () => {
+  if (!window.confirm("确认退出登录吗？")) return;
+  authStore.logout();
+  router.replace("/home");
 };
 
 const goHome = () => {
@@ -78,6 +89,17 @@ const goHome = () => {
 .clear {
   font-size: 13px;
   color: #ff9645;
+}
+
+.right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout {
+  font-size: 13px;
+  color: #7f8896;
 }
 
 .list {

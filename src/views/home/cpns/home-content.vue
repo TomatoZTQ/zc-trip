@@ -32,8 +32,8 @@
 </template>
 
 <script setup>
-import houseItemV9 from "@/components/house-item-v9/house-item-v9.vue";
-import houseItemV3 from "@/components/house-item-v3/house-item-v3.vue";
+import houseItemV9 from "@/components/house-item-v9-lazy.vue";
+import houseItemV3 from "@/components/house-item-v3-lazy.vue";
 import useHomeStore from "@/stores/modules/home";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";

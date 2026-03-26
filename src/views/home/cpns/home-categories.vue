@@ -13,7 +13,7 @@
         :key="item.id"
         @click="selectCategory(index, item)"
       >
-        <img :src="item.pictureUrl" :alt="item.title" />
+        <img :src="item.pictureUrl" :alt="item.title" loading="lazy" decoding="async" />
         <div class="text">{{ item.title }}</div>
       </div>
     </div>
@@ -133,3 +133,4 @@ const selectCategory = (index, item) => {
   }
 }
 </style>
+

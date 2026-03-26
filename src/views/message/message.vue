@@ -35,7 +35,7 @@
               :key="card.houseId"
               @click="openHouseDetail(card)"
             >
-              <img class="thumb" :src="card.imageUrl" alt="house" />
+              <img class="thumb" :src="card.imageUrl" alt="house" loading="lazy" decoding="async" />
               <div class="info">
                 <div class="name">{{ card.houseName || "未命名房源" }}</div>
                 <div class="location">{{ card.location || "位置未知" }}</div>
@@ -62,7 +62,7 @@
             :key="card.houseId"
             @click="openHouseDetail(card)"
           >
-            <img class="thumb" :src="card.imageUrl" alt="house" />
+            <img class="thumb" :src="card.imageUrl" alt="house" loading="lazy" decoding="async" />
             <div class="info">
               <div class="name">{{ card.houseName || "未命名房源" }}</div>
               <div class="location">{{ card.location || "位置未知" }}</div>
@@ -88,6 +88,10 @@
     </div>
 
     <div class="error" v-if="errorText">{{ errorText }}</div>
+    <div class="voice-status" v-if="speechStatusText">{{ speechStatusText }}</div>
+    <div class="voice-preview" v-if="isListening && speechInterimText">
+      {{ speechInterimText }}
+    </div>
 
     <div class="composer">
       <van-field
@@ -102,6 +106,15 @@
         <van-button plain type="default" size="small" @click="clearChat"
           >清空</van-button
         >
+        <van-button
+          plain
+          type="default"
+          size="small"
+          :disabled="!isListening && (!speechSupported || isLoading || speechState !== 'idle')"
+          @click="toggleListening"
+        >
+          {{ voiceButtonText }}
+        </van-button>
         <van-button
           plain
           type="default"
@@ -124,10 +137,11 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import useVoiceInput from "@/hooks/useVoiceInput";
 import {
   getAiRuntimeConfig,
   queryCityLiveWeather,
@@ -178,9 +192,32 @@ const canRetry = computed(() =>
   messages.value.some((item) => item.role === "user"),
 );
 
+function appendVoiceTextToInput(text) {
+  const nextText = String(text || "").trim();
+  if (!nextText) return;
+  inputText.value = inputText.value ? `${inputText.value}\n${nextText}` : nextText;
+}
+
 marked.setOptions({
   gfm: true,
   breaks: true,
+});
+
+const {
+  speechSupported,
+  isListening,
+  speechState,
+  speechStatusText,
+  speechInterimText,
+  voiceButtonText,
+  toggleListening,
+  initVoiceInput,
+  destroyVoiceInput
+} = useVoiceInput({
+  onCommit: (text) => {
+    appendVoiceTextToInput(text);
+    scrollToBottom();
+  }
 });
 
 function renderMarkdown(content) {
@@ -893,9 +930,14 @@ async function runRoutePrompt(prompt) {
 }
 
 onMounted(() => {
+  initVoiceInput();
   restoreMessages();
   scrollToBottom();
   runRoutePrompt(route.query.prompt);
+});
+
+onUnmounted(() => {
+  destroyVoiceInput();
 });
 
 watch(
@@ -1110,6 +1152,26 @@ watch(
   color: #c73b3b;
   background: #ffecec;
   font-size: 12px;
+}
+
+.voice-status {
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #6b7280;
+  background: #f2f4f7;
+  font-size: 12px;
+}
+
+.voice-preview {
+  margin: 0 12px 8px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #1f2937;
+  background: #ecfdf3;
+  border: 1px solid #c5efd8;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .composer {

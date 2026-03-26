@@ -1,8 +1,12 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from "vue-router"
+import pinia from "@/stores";
+import useAuthStore from "@/stores/modules/auth";
+
+const PUBLIC_PATHS = new Set(["/login"]);
 
 const router = createRouter({
   history: createWebHashHistory(),
-  // 映射关系: path -> component
+  // 鏄犲皠鍏崇郴: path -> component
   routes: [
     {
       path: "/",
@@ -10,26 +14,35 @@ const router = createRouter({
     },
     {
       path: "/home",
-      // 加载语法
+      // 鍔犺浇璇硶
       component: () => import("@/views/home/home.vue")
     },
     {
       path: "/favor",
-      component: () => import("@/views/favor/favor.vue")
+      component: () => import("@/views/favor/favor.vue"),
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: "/message",
-      component: () => import("@/views/message/message.vue")
+      component: () => import("@/views/message/message.vue"),
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: "/order",
-      component: () => import("@/views/order/order.vue")
+      component: () => import("@/views/order/order.vue"),
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: "/city",
       component: () => import("@/views/city/city.vue"),
       meta: {
-        // 为路由记录添加自定义的信息
+        // 涓鸿矾鐢辫褰曟坊鍔犺嚜瀹氫箟鐨勪俊鎭?
         hideTabBar: true
       }
     },
@@ -46,8 +59,35 @@ const router = createRouter({
       meta: {
         hideTabBar: true
       }
+    },
+    {
+      path: "/login",
+      component: () => import("@/views/login/login.vue"),
+      meta: {
+        hideTabBar: true
+      }
     }
   ]
 })
+
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore(pinia);
+  const hasSession = await authStore.ensureSession();
+
+  if (to.path === "/login" && hasSession) {
+    return "/home";
+  }
+
+  if (!PUBLIC_PATHS.has(to.path) && !hasSession) {
+    return {
+      path: "/login",
+      query: {
+        redirect: to.fullPath
+      }
+    };
+  }
+
+  return true;
+});
 
 export default router

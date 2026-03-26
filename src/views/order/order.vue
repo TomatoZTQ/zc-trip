@@ -2,7 +2,10 @@
   <div class="order-page">
     <van-nav-bar title="我的订单">
       <template #right>
-        <span class="clear" v-if="orderCount > 0" @click="clearAll">清空</span>
+        <div class="right-actions">
+          <span class="clear" v-if="orderCount > 0" @click="clearAll">清空</span>
+          <span class="logout" @click="logout">退出</span>
+        </div>
       </template>
     </van-nav-bar>
 
@@ -34,7 +37,7 @@
         <div class="keyword" v-if="item.keyword">关键词: {{ item.keyword }}</div>
 
         <div class="house-preview" v-if="item.selectedHouse" @click="toDetail(item.selectedHouse.houseId)">
-          <img :src="item.selectedHouse.imageUrl" alt="house" />
+          <img :src="item.selectedHouse.imageUrl" alt="house" loading="lazy" decoding="async" />
           <div class="house-info">
             <div class="name">{{ item.selectedHouse.houseName }}</div>
             <div class="price">¥{{ item.selectedHouse.finalPrice }}</div>
@@ -66,10 +69,12 @@
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import useOrderStore from "@/stores/modules/order";
+import useAuthStore from "@/stores/modules/auth";
 import { storeToRefs } from "pinia";
 
 const router = useRouter();
 const orderStore = useOrderStore();
+const authStore = useAuthStore();
 const { upcomingList, finishedList, canceledList, orderList } = storeToRefs(orderStore);
 
 const activeTab = ref("upcoming");
@@ -122,6 +127,12 @@ const clearAll = () => {
   orderStore.clearOrders();
 };
 
+const logout = () => {
+  if (!window.confirm("确认退出登录吗？")) return;
+  authStore.logout();
+  router.replace("/home");
+};
+
 const toDetail = (houseId) => {
   if (!houseId) return;
   router.push(`/detail/${houseId}`);
@@ -145,6 +156,17 @@ const goHome = () => {
 .clear {
   font-size: 13px;
   color: #ff9645;
+}
+
+.right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout {
+  font-size: 13px;
+  color: #7f8896;
 }
 
 .list {
